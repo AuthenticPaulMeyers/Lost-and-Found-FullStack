@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700;800;900&amp;family=Roboto:wght@300;400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1E40AF",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Roboto", "Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="flex h-full min-h-screen flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-6 py-3 lg:px-40 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-primary">
+<div class="size-8">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M36.7273 44C33.9891 44 31.6043 39.8386 30.3636 33.69C29.123 39.8386 26.7382 44 24 44C21.2618 44 18.877 39.8386 17.6364 33.69C16.3957 39.8386 14.0109 44 11.2727 44C7.25611 44 4 35.0457 4 24C4 12.9543 7.25611 4 11.2727 4C14.0109 4 16.3957 8.16144 17.6364 14.31C18.877 8.16144 21.2618 4 24 4C26.7382 4 29.123 8.16144 30.3636 14.31C31.6043 8.16144 33.9891 4 36.7273 4C40.7439 4 44 12.9543 44 24C44 35.0457 40.7439 44 36.7273 44Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-bold leading-tight tracking-tight">Ufoundit</h2>
+</div>
+<label class="hidden md:flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-xl h-full bg-slate-100 dark:bg-slate-800">
+<div class="text-slate-500 flex items-center justify-center pl-4">
+<span class="material-symbols-outlined text-lg">search</span>
+</div>
+<input class="form-input flex w-full border-none bg-transparent focus:ring-0 text-sm placeholder:text-slate-500" placeholder="Search items..."/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<nav class="hidden lg:flex items-center gap-6">
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Dashboard</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary text-sm font-medium transition-colors" href="#">Messages</a>
+<a class="text-primary text-sm font-semibold" href="#">My Items</a>
+</nav>
+<div class="flex gap-2 items-center">
+<button class="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors">
+<span class="material-symbols-outlined text-xl">notifications</span>
+</button>
+<div class="size-10 rounded-full bg-primary/10 border-2 border-primary overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="User profile avatar smiling" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzN3xyz5w-G4bGUp-7HnbfGPEnUzzpvgbiqLTunuJGK88O9PoBHIlLemSmcuZe9JNNwkZMk71OyZ1xtq6-1HXTyvYR6_raundFiJ3sLuB7W9kbq9fxBcpeInO-hwgvQ2FunAMpbrA9I4hPkoTSHdQZNmmMw5buxapnxHBr5mckhCNXmbqkNmayDGsqKOUh4hVCkBMERbau1TAIzskx4vOaAWM9oiJAUAZIFFQnGH6Om6p0zEfyfmRYEbL0gmEB3fa7OL0C7QJK_VW3"/>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-1 px-4 lg:px-40 py-8">
+<div class="flex flex-col gap-8 max-w-[1200px] mx-auto">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="text-slate-900 dark:text-slate-100 text-3xl font-extrabold tracking-tight">Manage My Items</h1>
+<p class="text-slate-600 dark:text-slate-400 text-base mt-1">Track and manage your lost or found campus belongings.</p>
+</div>
+<button class="flex items-center justify-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined">add</span>
+                        Post New Item
+                    </button>
+</div>
+<div class="flex border-b border-slate-200 dark:border-slate-800 gap-8">
+<button class="flex items-center gap-2 border-b-2 border-primary text-primary px-2 pb-4 font-bold text-sm">
+<span class="material-symbols-outlined text-lg">search_check</span>
+                        My Lost Items
+                    </button>
+<button class="flex items-center gap-2 border-b-2 border-transparent text-slate-500 dark:text-slate-400 px-2 pb-4 font-semibold text-sm hover:text-slate-700 transition-colors">
+<span class="material-symbols-outlined text-lg">inventory_2</span>
+                        My Found Items
+                    </button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col lg:flex-row gap-6 hover:shadow-md transition-shadow">
+<div class="w-full lg:w-48 h-48 lg:h-32 rounded-lg overflow-hidden bg-slate-100 shrink-0">
+<img class="w-full h-full object-cover" data-alt="Blue hiking backpack on a floor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCA-HsNmfgCf07a81xbPGCrlH_bzcPCcjn8Gh1e27-aE1A2spYJ5OgSfLUe7_IlP-Fx4WCVUh2KMYGyQUsEAXohZvH7hAp1k0SoCIQWUzkIvvONU_woylf8YAoB2Cy4C6o3DPqzblGsfaEl521ujNho2IAWrMQ62r8-hhQSx_Ma-5ZVKYTok8J27zmhCN_vaD9txmI8nBy4Ga3ipdKHNtAUZ1tSUkqiX9KG8x9pIGgj4ZWFud2GgxZbIbwSOLaB7acA7DPF5SzW7_6C"/>
+</div>
+<div class="flex flex-col flex-1 justify-between py-1">
+<div>
+<div class="flex items-start justify-between gap-2">
+<h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Blue Backpack</h3>
+<span class="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Active</span>
+</div>
+<div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-slate-500 dark:text-slate-400">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base">category</span>
+                                        Bags &amp; Luggage
+                                    </div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base">calendar_today</span>
+                                        Oct 12, 2023
+                                    </div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base">location_on</span>
+                                        Science Building
+                                    </div>
+</div>
+</div>
+<div class="flex flex-wrap gap-2 mt-4 lg:mt-0">
+<button class="flex-1 lg:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-primary/10 text-primary font-bold text-xs hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-base">edit</span>
+                                    Edit
+                                </button>
+<button class="flex-1 lg:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition-colors">
+<span class="material-symbols-outlined text-base">check_circle</span>
+                                    Mark Found
+                                </button>
+<button class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-red-600 hover:bg-red-50 transition-all">
+<span class="material-symbols-outlined text-base">delete</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col lg:flex-row gap-6 hover:shadow-md transition-shadow">
+<div class="w-full lg:w-48 h-48 lg:h-32 rounded-lg overflow-hidden bg-slate-100 shrink-0">
+<img class="w-full h-full object-cover" data-alt="Silver car keys and fob" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvbI2apIjGwaau8Gz8B2HTdkbLnDcuhCERpAfXsWb_XGDwjiSHh6sh_h-ivL9IwEiL_alaF7jOe0xX5Gh-l027gMVVELZRaxm8JbVielLbYM6Dw1D-GeWsx73EARkk6lLz-QHeFxeLU72hy1ng87eJLwfRMbEZh94JgnvzYGhcX-UKgjJXDoaFYaUCn6aVUwjj7xQ_LbgeLWJ5_oc6RrOxEMNkkC5ZlDZMWnJPXjCssJmSygRuMapuWXZPoOlBdazviIi0kzSyzvBk"/>
+</div>
+<div class="flex flex-col flex-1 justify-between py-1">
+<div>
+<div class="flex items-start justify-between gap-2">
+<h3 class="text-lg font-bold text-slate-900 dark:text-slate-100">Dorm Keys</h3>
+<span class="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Pending Verification</span>
+</div>
+<div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-slate-500 dark:text-slate-400">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base">category</span>
+                                        Essentials
+                                    </div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base">calendar_today</span>
+                                        Oct 15, 2023
+                                    </div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base">location_on</span>
+                                        Campus Cafeteria
+                                    </div>
+</div>
+</div>
+<div class="flex flex-wrap gap-2 mt-4 lg:mt-0">
+<button class="flex-1 lg:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-primary/10 text-primary font-bold text-xs hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-base">edit</span>
+                                    Edit
+                                </button>
+<button class="flex-1 lg:flex-none flex items-center justify-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 text-white font-bold text-xs hover:bg-emerald-700 transition-colors">
+<span class="material-symbols-outlined text-base">check_circle</span>
+                                    Mark Found
+                                </button>
+<button class="p-2 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-red-600 hover:bg-red-50 transition-all">
+<span class="material-symbols-outlined text-base">delete</span>
+</button>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-4 flex flex-col lg:flex-row gap-6 opacity-60">
+<div class="w-full lg:w-48 h-48 lg:h-32 rounded-lg overflow-hidden bg-slate-200 shrink-0 grayscale">
+<img class="w-full h-full object-cover" data-alt="Open textbook on a table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_oLXOrEA0NUye9OeBAjcSlu73XzhUEGPL1HnG8kiALuqmGRfZhitIkoe7DZii2Wgk629rBGX_EBrVCRXbCcFgIJl3fB4kVqL1pLpVRSy2dy5sED_jx-WWoPrVeys3_YOKuvu8xdmE8fCeSipgkdfH7p72RF4mMdWMJsJOEJnYn6q1PjXr8WU0e2tA4rI3Y8eCyG0g4CbwFWkH3Xg3tAZyySsHJNgsMUDs8FjUDA049R3PUm83ydxJUXIu8PssxlasPWopCUD3QfPm"/>
+</div>
+<div class="flex flex-col flex-1 justify-between py-1">
+<div>
+<div class="flex items-start justify-between gap-2">
+<h3 class="text-lg font-bold text-slate-900 dark:text-slate-100 line-through">Calculus Textbook</h3>
+<span class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">Resolved</span>
+</div>
+<div class="flex flex-wrap gap-x-4 gap-y-1 mt-2 text-sm text-slate-500 dark:text-slate-400">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base">category</span>
+                                        Books
+                                    </div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base">calendar_today</span>
+                                        Sep 28, 2023
+                                    </div>
+</div>
+</div>
+<div class="flex flex-wrap gap-2 mt-4 lg:mt-0">
+<span class="text-xs font-medium text-slate-500 italic">This item was marked as found on Oct 05, 2023.</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-12 hidden">
+<div class="flex flex-col items-center justify-center text-center p-12 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl bg-white/50 dark:bg-slate-900/50">
+<div class="bg-primary/10 p-4 rounded-full mb-4">
+<span class="material-symbols-outlined text-primary text-5xl">search_off</span>
+</div>
+<h2 class="text-xl font-bold text-slate-900 dark:text-slate-100">No items found</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-2 max-w-sm">You haven't reported any lost or found items yet. Click the button above to get started.</p>
+<button class="mt-6 flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-primary/90">
+                            Post your first item
+                        </button>
+</div>
+</div>
+<div class="mt-16 flex flex-col md:flex-row gap-6 p-6 rounded-xl bg-primary text-white overflow-hidden relative">
+<div class="relative z-10">
+<h3 class="text-xl font-bold">Lost something recently?</h3>
+<p class="mt-2 opacity-90 max-w-md text-sm">Our AI matching system can help you find items faster. Post your item details and we'll notify you if we find a match.</p>
+<button class="mt-6 bg-white text-primary px-6 py-2 rounded-lg font-bold text-sm hover:bg-slate-100 transition-colors">
+                            Post a Lost Item
+                        </button>
+</div>
+<div class="absolute right-0 top-0 h-full w-1/3 opacity-10 flex items-center justify-center translate-x-10 pointer-events-none">
+<span class="material-symbols-outlined text-[200px]">explore</span>
+</div>
+</div>
+</div>
+</main>
+<footer class="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark py-8 px-4 lg:px-40 mt-auto">
+<div class="flex flex-col md:flex-row justify-between items-center gap-4 text-slate-500 dark:text-slate-400 text-sm">
+<div class="flex items-center gap-2">
+<div class="size-6 text-primary">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M36.7273 44C33.9891 44 31.6043 39.8386 30.3636 33.69C29.123 39.8386 26.7382 44 24 44C21.2618 44 18.877 39.8386 17.6364 33.69C16.3957 39.8386 14.0109 44 11.2727 44C7.25611 44 4 35.0457 4 24C4 12.9543 7.25611 4 11.2727 4C14.0109 4 16.3957 8.16144 17.6364 14.31C18.877 8.16144 21.2618 4 24 4C26.7382 4 29.123 8.16144 30.3636 14.31C31.6043 8.16144 33.9891 4 36.7273 4C40.7439 4 44 12.9543 44 24C44 35.0457 40.7439 44 36.7273 44Z" fill="currentColor"></path>
+</svg>
+</div>
+<span class="font-bold text-slate-700 dark:text-slate-300">Ufoundit</span>
+<span>© 2023 University Portal</span>
+</div>
+<div class="flex gap-6">
+<a class="hover:text-primary transition-colors" href="#">Safety Tips</a>
+<a class="hover:text-primary transition-colors" href="#">Privacy Policy</a>
+<a class="hover:text-primary transition-colors" href="#">Help Center</a>
+</div>
+</div>
+</footer>
+</div>
+</body></html>
