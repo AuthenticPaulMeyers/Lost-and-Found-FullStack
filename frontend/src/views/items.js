@@ -1,5 +1,6 @@
 import { api } from '../api.js';
 import { state } from '../state.js';
+import { showToast } from '../toast.js';
 
 const ALLOWED_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg'];
 
@@ -579,7 +580,7 @@ export default {
                 <span>Reporter: ${data.is_anonymous ? 'Anonymous user' : (data.owner?.full_name || 'Campus Student')}</span>
               </div>
 
-              ${data.is_anonymous ? '' : `
+              ${data.is_anonymous || isOwner ? '' : `
                 <div class="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
                   <span class="material-symbols-outlined text-sm">call</span>
                   <span>Phone: ${data.owner?.phone_number || 'Not provided'}</span>
@@ -724,7 +725,8 @@ export default {
           btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-sm">sync</span> Deleting...`;
           const res = await api.delete(`/api/items/${data.id}/`);
           if (res.ok) {
-            window.location.hash = '#/items';
+            showToast('Item deleted', 'success', 1800);
+            setTimeout(() => window.location.hash = '#/items', 900);
           } else {
             alert('Failed to delete item listing');
             btn.disabled = false;
@@ -820,7 +822,8 @@ export default {
       try {
         const res = await api.put(`/api/items/${itemId}/`, formData);
         if (res.ok) {
-          window.location.hash = `#/items/${itemId}`;
+          showToast('Item updated', 'success', 1500);
+          setTimeout(() => window.location.hash = `#/items/${itemId}`, 700);
         } else {
           const errs = await res.json();
           alertEl.classList.remove('hidden');
