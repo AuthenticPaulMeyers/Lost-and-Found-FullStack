@@ -13,5 +13,16 @@ class IsClaimerOrReadOnly(permissions.BasePermission):
         if request.method in permissions.SAFE_METHODS:
             return True
 
-        # Write permissions (PUT, PATCH, DELETE) are only allowed to the claimer.
-        return obj.claimer.user == request.user
+        # Allow write permissions to either the claimer (who made the claim)
+        # or the original poster/finder of the item (who can approve/reject/resolve).
+        try:
+            is_claimer = obj.claimer.user == request.user
+        except Exception:
+            is_claimer = False
+
+        try:
+            is_item_poster = obj.item.poster.user == request.user
+        except Exception:
+            is_item_poster = False
+
+        return is_claimer or is_item_poster
