@@ -1,6 +1,55 @@
 import { api } from '../api.js';
 import { state } from '../state.js';
 
+const ALLOWED_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg'];
+
+function unwrapListResponse(payload) {
+  if (Array.isArray(payload)) {
+    return payload;
+  }
+
+  if (payload && Array.isArray(payload.results)) {
+    return payload.results;
+  }
+
+  return [];
+}
+
+function sanitizeText(value) {
+  return (value || '')
+    .replace(/[\u0000-\u001f\u007f]/g, ' ')
+    .replace(/<[^>]*>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function sanitizeTextarea(value) {
+  return (value || '')
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, ' ')
+    .replace(/<[^>]*>/g, '')
+    .trim();
+}
+
+function isAllowedImageFile(file) {
+  const fileExtension = file.name.split('.').pop()?.toLowerCase();
+  return ALLOWED_IMAGE_EXTENSIONS.includes(fileExtension) && ['image/jpeg', 'image/png'].includes(file.type);
+}
+
+async function loadCategories() {
+  try {
+    const response = await api.get('/api/categories/');
+    if (!response.ok) {
+      return [];
+    }
+
+    const payload = await response.json();
+    return unwrapListResponse(payload);
+  } catch (error) {
+    console.error('Failed to load categories:', error);
+    return [];
+  }
+}
+
 export default {
   async render(params, query) {
     const isNew = window.location.hash.includes('/new');
@@ -100,7 +149,7 @@ export default {
       try {
         const catRes = await api.get('/api/categories/');
         if (catRes.ok) {
-          const cats = await catRes.json();
+          const cats = unwrapListResponse(await catRes.json());
           // populate categories select options
           catSelect.innerHTML = `<option value="">All Categories</option>` +
             cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
@@ -199,7 +248,12 @@ export default {
   // ==========================================
   // RENDER POST ITEM (NEW)
   // ==========================================
-  renderNew(defaultType) {
+  async renderNew(defaultType) {
+    const categories = await loadCategories();
+    const categoryOptions = categories.length
+      ? categories.map(category => `<option value="${category.id}">${category.name}</option>`).join('')
+      : '<option value="" disabled selected>No categories available</option>';
+
     return `
       <div class="max-w-2xl mx-auto my-12 p-8 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-xl animate-fade-in">
         <h2 class="text-2xl font-bold mb-2 dark:text-white">Report lost or found item</h2>
@@ -212,52 +266,60 @@ export default {
 
         <form id="form-post-item" class="flex flex-col gap-5">
           <div class="flex flex-col gap-1">
-            <label for="item-title" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Listing Title</label>
+            <label for="item-title" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Listing Title <span class="text-red-500">*</span></label>
             <input type="text" id="item-title" required class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. iPhone 13 Pro with green cover" />
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="flex flex-col gap-1">
-              <label for="item-type" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Listing Type</label>
-              <select id="item-type" class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
+              <label for="item-type" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Listing Type <span class="text-red-500">*</span></label>
+              <select id="item-type" required class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
                 <option value="lost" ${defaultType === 'lost' ? 'selected' : ''}>Lost Item</option>
                 <option value="found" ${defaultType === 'found' ? 'selected' : ''}>Found Item</option>
               </select>
             </div>
             
             <div class="flex flex-col gap-1">
-              <label for="item-cat" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Category</label>
+              <label for="item-cat" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Category <span class="text-red-500">*</span></label>
               <select id="item-cat" required class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20">
-                <!-- Loaded dynamically -->
+                <option value="" disabled selected>Select a category</option>
+                ${categoryOptions}
               </select>
             </div>
           </div>
 
           <div class="flex flex-col gap-1">
-            <label for="item-desc" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Detailed Description</label>
+            <label for="item-desc" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Detailed Description <span class="text-red-500">*</span></label>
             <textarea id="item-desc" required class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 h-28" placeholder="Provide color, brand, distinct marks, case details, or screen wallpaper description..."></textarea>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="flex flex-col gap-1">
-              <label for="item-location" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Location Name</label>
+              <label for="item-location" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Location Name <span class="text-red-500">*</span></label>
               <input type="text" id="item-location" required class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. Main Library 2nd floor" />
             </div>
 
             <div class="flex flex-col gap-1">
-              <label for="item-date" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Date Lost / Found</label>
+              <label for="item-area" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Campus Area</label>
+              <input type="text" id="item-area" class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. North Campus" />
+            </div>
+
+            <div class="flex flex-col gap-1">
+              <label for="item-date" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Date Lost / Found <span class="text-red-500">*</span></label>
               <input type="date" id="item-date" required class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" />
             </div>
           </div>
 
           <div class="flex flex-col gap-1">
-            <label for="item-question" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Ownership Verification Question</label>
-            <input type="text" id="item-question" required class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. What is written on the back? / What sticker is on the bottle?" />
+            <label for="item-question" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Ownership Verification Question <span class="text-red-500" id="item-question-required-mark">*</span></label>
+            <input type="text" id="item-question" class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="e.g. What is written on the back? / What sticker is on the bottle?" />
+            <p class="text-[11px] text-slate-500">Required for found items.</p>
           </div>
 
           <div class="flex flex-col gap-1">
             <label for="item-files" class="text-xs font-semibold text-slate-700 dark:text-slate-300">Item Pictures</label>
-            <input type="file" id="item-files" multiple accept="image/*" class="text-xs bg-slate-50 p-3 rounded-xl border border-slate-200" />
+            <input type="file" id="item-files" multiple accept=".png,.jpg,.jpeg,image/png,image/jpeg" class="text-xs bg-slate-50 p-3 rounded-xl border border-slate-200" />
+            <p class="text-[11px] text-slate-500">Allowed file types: .png, .jpg, .jpeg</p>
           </div>
 
           <div class="flex items-center gap-2 mt-2">
@@ -265,8 +327,10 @@ export default {
             <label for="item-anon" class="text-xs text-slate-600 dark:text-slate-300 font-medium">Post anonymously (your name won't be shown publicly)</label>
           </div>
 
+          <input type="hidden" id="item-status" value="active" />
+
           <button type="submit" id="btn-post-submit" class="w-full cursor-pointer items-center justify-center rounded-xl h-12 bg-primary text-white text-sm font-bold shadow-md hover:bg-primary/95 transition-all flex gap-2 justify-center mt-4">
-            <span>Publish Report</span>
+            <span>Post Item</span>
           </button>
         </form>
       </div>
@@ -276,6 +340,9 @@ export default {
   async afterRenderNew() {
     const form = document.getElementById('form-post-item');
     const catSelect = document.getElementById('item-cat');
+    const typeSelect = document.getElementById('item-type');
+    const questionInput = document.getElementById('item-question');
+    const questionRequiredMark = document.getElementById('item-question-required-mark');
     const submitBtn = document.getElementById('btn-post-submit');
 
     const alertEl = document.getElementById('post-alert');
@@ -294,46 +361,82 @@ export default {
       alertMsg.innerText = message;
     };
 
-    // Load categories
-    try {
-      const catRes = await api.get('/api/categories/');
-      if (catRes.ok) {
-        const cats = await catRes.json();
-        catSelect.innerHTML = cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-      }
-    } catch (err) {
-      console.error(err);
-    }
+    const setQuestionRequirement = () => {
+      const isFound = typeSelect.value === 'found';
+      questionInput.required = isFound;
+      questionRequiredMark.classList.toggle('hidden', !isFound);
+    };
+
+    setQuestionRequirement();
+    typeSelect?.addEventListener('change', setQuestionRequirement);
 
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      
+
+      if (submitBtn.disabled) {
+        return;
+      }
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        showAlert('Please complete all required fields marked with *.', false);
+        return;
+      }
+
+      const titleVal = sanitizeText(document.getElementById('item-title').value);
+      const descVal = sanitizeTextarea(document.getElementById('item-desc').value);
+      const locVal = sanitizeText(document.getElementById('item-location').value);
+      const areaVal = sanitizeText(document.getElementById('item-area').value);
+      const dateVal = document.getElementById('item-date').value;
+      const typeVal = typeSelect.value;
+      const categoryVal = catSelect.value;
+      const verificationQuestionVal = sanitizeTextarea(questionInput.value);
+      const imageInput = document.getElementById('item-files');
+      const selectedFiles = Array.from(imageInput.files || []);
+
+      if (!titleVal || !descVal || !locVal || !dateVal || !typeVal || !categoryVal) {
+        showAlert('Please fill out all required fields marked with *.', false);
+        return;
+      }
+
+      if (typeVal === 'found' && !verificationQuestionVal) {
+        showAlert('Found items require a verification question.', false);
+        return;
+      }
+
+      const invalidFiles = selectedFiles.filter(file => !isAllowedImageFile(file));
+      if (invalidFiles.length > 0) {
+        showAlert('Only .png, .jpg, and .jpeg images are allowed.', false);
+        return;
+      }
+
       alertEl.classList.add('hidden');
       submitBtn.disabled = true;
-      submitBtn.innerHTML = `<span class="material-symbols-outlined animate-spin text-sm">sync</span> Publishing...`;
+      submitBtn.innerHTML = `<span class="material-symbols-outlined animate-spin text-sm">sync</span> Posting...`;
 
       // Use FormData for multipart/image uploads
       const formData = new FormData();
-      formData.append('title', document.getElementById('item-title').value.trim());
-      formData.append('item_type', document.getElementById('item-type').value);
-      formData.append('category', catSelect.value);
-      formData.append('description', document.getElementById('item-desc').value.trim());
-      formData.append('location_name', document.getElementById('item-location').value.trim());
-      formData.append('date_found_lost', document.getElementById('item-date').value);
-      formData.append('verification_question', document.getElementById('item-question').value.trim());
+      formData.append('title', titleVal);
+      formData.append('item_type', typeVal);
+      formData.append('category', categoryVal);
+      formData.append('description', descVal);
+      formData.append('location_name', locVal);
+      formData.append('campus_area', areaVal);
+      formData.append('date_found_lost', dateVal);
+      formData.append('verification_question', verificationQuestionVal);
       formData.append('is_anonymous', document.getElementById('item-anon').checked);
+      formData.append('status', document.getElementById('item-status').value);
 
       // Append selected files
-      const fileInput = document.getElementById('item-files');
-      if (fileInput.files.length > 0) {
-        for (let i = 0; i < fileInput.files.length; i++) {
-          formData.append('uploaded_images', fileInput.files[i]);
-        }
+      if (selectedFiles.length > 0) {
+        selectedFiles.forEach(file => {
+          formData.append('uploaded_images', file);
+        });
       }
 
       try {
         const res = await api.post('/api/items/', formData);
-        
+
         if (res.ok) {
           showAlert('Item reported successfully! Redirecting...', true);
           setTimeout(() => {
@@ -343,13 +446,13 @@ export default {
           const errs = await res.json();
           showAlert(JSON.stringify(errs), false);
           submitBtn.disabled = false;
-          submitBtn.innerHTML = `<span>Publish Report</span>`;
+          submitBtn.innerHTML = `<span>Post Item</span>`;
         }
       } catch (err) {
         console.error(err);
         showAlert('Network exception occurred. Please try again.', false);
         submitBtn.disabled = false;
-        submitBtn.innerHTML = `<span>Publish Report</span>`;
+        submitBtn.innerHTML = `<span>Post Item</span>`;
       }
     });
   },
