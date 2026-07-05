@@ -9,7 +9,9 @@ const routes = {
   '/profile/:id': { view: 'dashboard', isPrivate: true }, // We render profile/dashboard unified or sub-tabs
   '/items': { view: 'items', isPrivate: true },
   '/items/new': { view: 'items', isPrivate: true },
+  '/items/:id/edit': { view: 'items', isPrivate: true },
   '/items/:id': { view: 'items', isPrivate: true },
+  '/error': { view: 'error', isPrivate: false },
   '/chat': { view: 'chat', isPrivate: true },
 };
 
@@ -180,12 +182,17 @@ async function navigate() {
       registerView(route.view, viewModule.default);
     } catch (error) {
       console.error(`Error loading view ${route.view}:`, error);
+      const message = (error && (error.message || String(error))) || 'Unknown error';
       document.getElementById('app').innerHTML = `
         <div class="max-w-md mx-auto my-20 text-center p-8 bg-white rounded-2xl border border-red-100 shadow-xl">
           <span class="material-symbols-outlined text-6xl text-red-500 mb-4">error</span>
           <h2 class="text-xl font-bold mb-2">Error Loading Page</h2>
           <p class="text-slate-500 mb-4">We encountered an issue loading this section.</p>
-          <a href="#/" class="inline-flex items-center gap-2 px-6 py-2 bg-primary text-white font-bold rounded-lg">Go Home</a>
+          <pre class="text-xs text-left p-3 bg-slate-50 rounded mt-2 overflow-auto text-red-600">${message}</pre>
+          <div class="flex justify-center gap-3 mt-4">
+            <a href="#/" class="inline-flex items-center gap-2 px-6 py-2 bg-primary text-white font-bold rounded-lg">Go Home</a>
+            <a href="#/" onclick="window.location.reload();return false;" class="inline-flex items-center gap-2 px-6 py-2 bg-white border rounded-lg">Reload</a>
+          </div>
         </div>
       `;
       return;
@@ -202,6 +209,15 @@ async function navigate() {
   if (activeView.afterRender) {
     await activeView.afterRender(parsed.params, parsed.query);
   }
+
+  // Footer visibility: only show on landing page '/'
+  try {
+    const footerEl = document.querySelector('footer');
+    if (footerEl) {
+      if (parsed.path === '/') footerEl.style.display = '';
+      else footerEl.style.display = 'none';
+    }
+  } catch (e) { /* ignore */ }
 
   // Update layout header
   updateNavigation();

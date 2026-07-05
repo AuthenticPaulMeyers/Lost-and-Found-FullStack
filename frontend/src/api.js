@@ -35,6 +35,25 @@ async function request(url, options = {}) {
     throw error;
   }
 
+  // Global responses mapping: redirect to friendly error pages for common statuses
+  const status = response.status;
+  if (status === 403) {
+    // If user not authenticated, send to login; otherwise show error page
+    if (!state.isAuthenticated) {
+      clearAuthState();
+      window.location.hash = '#/login';
+      throw new Error('Forbidden - authentication required');
+    } else {
+      window.location.hash = '#/error?code=403';
+      return response;
+    }
+  }
+
+  if ([404, 429, 405, 500].includes(status)) {
+    window.location.hash = `#/error?code=${status}`;
+    return response;
+  }
+
   // Handle 401 Unauthorized
   if (response.status === 401) {
     // If the 401 was for the refresh endpoint itself, immediately log out

@@ -53,12 +53,15 @@ async function loadCategories() {
 export default {
   async render(params, query) {
     const isNew = window.location.hash.includes('/new');
-    const isDetails = !!params.id;
+    const isEdit = window.location.hash.includes('/edit');
+    const isDetails = !!params.id && !isEdit;
 
     if (isDetails) {
       return this.renderDetails(params.id);
     } else if (isNew) {
       return this.renderNew(query.type || 'lost');
+    } else if (isEdit) {
+      return this.renderEdit(params.id);
     } else {
       return this.renderList(query);
     }
@@ -66,12 +69,15 @@ export default {
 
   async afterRender(params, query) {
     const isNew = window.location.hash.includes('/new');
-    const isDetails = !!params.id;
+    const isEdit = window.location.hash.includes('/edit');
+    const isDetails = !!params.id && !isEdit;
 
     if (isDetails) {
       await this.afterRenderDetails(params.id);
     } else if (isNew) {
       await this.afterRenderNew(query.type || 'lost');
+    } else if (isEdit) {
+      await this.afterRenderEdit(params.id);
     } else {
       await this.afterRenderList(query);
     }
@@ -616,9 +622,10 @@ export default {
 
             ${isOwner ? `
               <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex gap-2">
-                <button id="btn-delete-listing" class="flex-1 py-3 bg-red-50 text-red-600 hover:bg-red-100 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1">
-                  <span class="material-symbols-outlined text-sm">delete</span> Delete Listing
-                </button>
+                      <a href="#/items/${data.id}/edit" id="btn-edit-listing" class="px-3 py-3 bg-white border rounded-xl text-xs font-semibold">Edit</a>
+                      <button id="btn-delete-listing" class="flex-1 py-3 bg-red-50 text-red-600 hover:bg-red-100 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-1">
+                        <span class="material-symbols-outlined text-sm">delete</span> Delete Listing
+                      </button>
               </div>
             ` : ''}
           </div>
@@ -710,18 +717,123 @@ export default {
 
       // Handle delete listing
       document.getElementById('btn-delete-listing')?.addEventListener('click', async () => {
+        const btn = document.getElementById('btn-delete-listing');
         if (!confirm('Are you sure you want to delete this listing permanently?')) return;
         try {
+          btn.disabled = true;
+          btn.innerHTML = `<span class="material-symbols-outlined animate-spin text-sm">sync</span> Deleting...`;
           const res = await api.delete(`/api/items/${data.id}/`);
           if (res.ok) {
             window.location.hash = '#/items';
           } else {
             alert('Failed to delete item listing');
+            btn.disabled = false;
+            btn.innerHTML = `<span class="material-symbols-outlined text-sm">delete</span> Delete Listing`;
           }
         } catch (error) {
           console.error(error);
+          btn.disabled = false;
+          btn.innerHTML = `<span class="material-symbols-outlined text-sm">delete</span> Delete Listing`;
         }
       });
     }
-  }
+  },
+
+  // ==========================================
+  // RENDER ITEM EDIT
+  // ==========================================
+  async renderEdit(itemId) {
+    // Reuse new item form layout but change button text
+    const base = await this.renderNew();
+    // replace submit button text via string replace; afterRenderEdit will populate values
+    return base.replace('Post Item', 'Update Item');
+  },
+
+  async afterRenderEdit(itemId) {
+    // Prefill form with item data and change submit to perform PUT
+    const form = document.getElementById('form-post-item');
+    const submitBtn = document.getElementById('btn-post-submit');
+    const alertEl = document.getElementById('post-alert');
+
+    if (!form) return;
+
+    try {
+      const res = await api.get(`/api/items/${itemId}/`);
+      if (!res.ok) {
+        document.getElementById('app').innerHTML = `<div class="max-w-md mx-auto my-20 text-center p-8 bg-white rounded-2xl border border-red-100 shadow-xl">Item not found.</div>`;
+        return;
+      }
+
+      const data = await res.json();
+      // Fill fields
+      document.getElementById('item-title').value = data.title || '';
+      document.getElementById('item-desc').value = data.description || '';
+      document.getElementById('item-location').value = data.location_name || '';
+      document.getElementById('item-area').value = data.campus_area || '';
+      if (data.date_found_lost) document.getElementById('item-date').value = data.date_found_lost.split('T')[0];
+      document.getElementById('item-type').value = data.item_type || 'lost';
+      document.getElementById('item-status').value = data.status || 'active';
+      document.getElementById('item-question').value = data.verification_question || '';
+      // select category
+      const catSelect = document.getElementById('item-cat');
+      if (catSelect) {
+        // try to set value, options should have been loaded
+        catSelect.value = data.category || '';
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (submitBtn.disabled) return;
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span class="material-symbols-outlined animate-spin text-sm">sync</span> Updating...`;
+
+      const titleVal = sanitizeText(document.getElementById('item-title').value);
+      const descVal = sanitizeTextarea(document.getElementById('item-desc').value);
+      const locVal = sanitizeText(document.getElementById('item-location').value);
+      const areaVal = sanitizeText(document.getElementById('item-area').value);
+      const dateVal = document.getElementById('item-date').value;
+      const typeVal = document.getElementById('item-type').value;
+      const categoryVal = document.getElementById('item-cat').value;
+      const verificationQuestionVal = sanitizeTextarea(document.getElementById('item-question').value);
+
+      const formData = new FormData();
+      formData.append('title', titleVal);
+      formData.append('item_type', typeVal);
+      formData.append('category', categoryVal);
+      formData.append('description', descVal);
+      formData.append('location_name', locVal);
+      formData.append('campus_area', areaVal);
+      formData.append('date_found_lost', dateVal);
+      formData.append('verification_question', verificationQuestionVal);
+      formData.append('is_anonymous', document.getElementById('item-anon').checked);
+      formData.append('status', document.getElementById('item-status').value);
+
+      try {
+        const res = await api.put(`/api/items/${itemId}/`, formData);
+        if (res.ok) {
+          window.location.hash = `#/items/${itemId}`;
+        } else {
+          const errs = await res.json();
+          alertEl.classList.remove('hidden');
+          alertEl.classList.add('bg-red-50', 'text-red-700', 'border-l-4', 'border-red-500');
+          document.getElementById('post-alert-msg').innerText = JSON.stringify(errs);
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `<span>Update Item</span>`;
+        }
+      } catch (err) {
+        console.error(err);
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span>Update Item</span>`;
+      }
+    });
+  },
 };
