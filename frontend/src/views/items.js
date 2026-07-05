@@ -186,7 +186,8 @@ export default {
         if (res.ok) {
           const data = await res.json();
           const items = data.results || [];
-          renderItemsList(items);
+          // pass pagination metadata so UI can render controls
+          renderItemsList(items, { next: data.next, previous: data.previous, count: data.count });
         } else {
           grid.innerHTML = `<div class="col-span-full text-center text-slate-500 py-8">Failed to fetch items</div>`;
         }
@@ -196,7 +197,7 @@ export default {
       }
     };
 
-    const renderItemsList = (items) => {
+    const renderItemsList = (items, paging = {}) => {
       if (items.length === 0) {
         grid.innerHTML = `
           <div class="col-span-full flex flex-col items-center justify-center p-16 text-center gap-3">
@@ -229,6 +230,47 @@ export default {
           </div>
         `;
       }).join('');
+
+      // Pagination controls (simple next/prev)
+      const pagingHtml = [];
+      if (paging.previous) {
+        pagingHtml.push(`<button id="btn-prev-page" class="px-4 py-2 bg-white border rounded-lg">Previous</button>`);
+      }
+      if (paging.next) {
+        pagingHtml.push(`<button id="btn-next-page" class="px-4 py-2 bg-white border rounded-lg">Next</button>`);
+      }
+
+      // Insert pagination bar after grid (remove previous if present)
+      document.getElementById('items-pagination')?.remove();
+      const paginationBar = `<div id="items-pagination" class="col-span-full flex justify-center gap-4 mt-6">${pagingHtml.join('')}</div>`;
+      grid.insertAdjacentHTML('afterend', paginationBar);
+
+      // Attach handlers
+      if (paging.previous) {
+        document.getElementById('btn-prev-page')?.addEventListener('click', async () => {
+          try {
+            const res = await api.get(paging.previous);
+            if (res.ok) {
+              const d = await res.json();
+              renderItemsList(d.results || [], { next: d.next, previous: d.previous, count: d.count });
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          } catch (e) { console.error(e); }
+        });
+      }
+
+      if (paging.next) {
+        document.getElementById('btn-next-page')?.addEventListener('click', async () => {
+          try {
+            const res = await api.get(paging.next);
+            if (res.ok) {
+              const d = await res.json();
+              renderItemsList(d.results || [], { next: d.next, previous: d.previous, count: d.count });
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          } catch (e) { console.error(e); }
+        });
+      }
     };
 
     // Event listeners for live filtering
@@ -530,6 +572,23 @@ export default {
                 <span class="material-symbols-outlined text-sm">person</span>
                 <span>Reporter: ${data.is_anonymous ? 'Anonymous user' : (data.owner?.full_name || 'Campus Student')}</span>
               </div>
+
+              ${data.is_anonymous ? '' : `
+                <div class="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  <span class="material-symbols-outlined text-sm">call</span>
+                  <span>Phone: ${data.owner?.phone_number || 'Not provided'}</span>
+                </div>
+
+                <div class="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                  <span class="material-symbols-outlined text-sm">place</span>
+                  <span>Campus area: ${data.owner?.campus_location || 'Not provided'}</span>
+                </div>
+
+                <div class="flex gap-2 mt-3">
+                  ${data.owner?.phone_number ? `<a href="tel:${data.owner.phone_number}" id="btn-call-poster" class="px-3 py-2 bg-white border rounded-xl text-xs font-semibold">Call Poster</a>` : ''}
+                  <a href="#/chat?user=${data.owner?.id || ''}&item=${data.id}" id="btn-chat-poster" class="px-3 py-2 bg-primary text-white rounded-xl text-xs font-semibold">Chat</a>
+                </div>
+              `}
             </div>
 
             <div>
@@ -544,12 +603,14 @@ export default {
                 
                 <div id="claim-alert" class="hidden p-3 rounded-lg text-xs flex items-center gap-2"></div>
                 
-                <form id="form-claim-item" class="flex flex-col gap-3 mt-2">
-                  <input type="text" id="claim-answer" required class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="Provide the answer or proof of ownership..." />
-                  <button type="submit" id="btn-claim-submit" class="w-full py-3 bg-primary hover:bg-primary/95 text-white font-bold text-xs rounded-xl shadow transition-all">
-                    Submit Claim request
-                  </button>
-                </form>
+                <div id="claim-form-wrap" class="mt-2">
+                  <form id="form-claim-item" class="flex flex-col gap-3">
+                    <input type="text" id="claim-answer" required class="px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:ring-2 focus:ring-primary/20" placeholder="Provide the answer or proof of ownership..." />
+                    <button type="submit" id="btn-claim-submit" class="w-full py-3 bg-primary hover:bg-primary/95 text-white font-bold text-xs rounded-xl shadow transition-all">
+                      Submit Claim request
+                    </button>
+                  </form>
+                </div>
               </div>
             ` : ''}
 
@@ -565,6 +626,7 @@ export default {
       `;
 
       // Handle claim form submission
+      const claimForm = document.getElementById('form-claim-item');
       document.getElementById('form-claim-item')?.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitBtn = document.getElementById('btn-claim-submit');
@@ -586,6 +648,10 @@ export default {
             alertEl.innerHTML = `<span class="material-symbols-outlined text-sm">check_circle</span> Claim request submitted. Track it on your dashboard.`;
             alertEl.classList.remove('hidden');
             document.getElementById('form-claim-item').reset();
+            // disable form to prevent duplicate claims and show pending
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Pending approval';
+            submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
           } else {
             const err = await res.json();
             alertEl.className = 'p-3 rounded-lg text-xs bg-red-50 text-red-700';
@@ -600,6 +666,47 @@ export default {
           submitBtn.innerText = 'Submit Claim request';
         }
       });
+
+      // If user is authenticated, fetch their claims to show status and disable duplicate actions
+      (async () => {
+        try {
+          if (!state.isAuthenticated) {
+            // replace claim form with login prompt
+            if (document.getElementById('claim-form-wrap')) {
+              document.getElementById('claim-form-wrap').innerHTML = `<div class="text-xs text-slate-500">Please <a href="#/login" class="text-primary font-semibold">log in</a> to submit a claim.</div>`;
+            }
+            return;
+          }
+
+          const claimsRes = await api.get('/api/claims/');
+          if (!claimsRes.ok) return;
+          const claimsData = await claimsRes.json();
+          const claims = claimsData.results || [];
+          const myClaim = claims.find(c => c.item === data.id);
+          if (myClaim) {
+            const alertEl = document.getElementById('claim-alert');
+            if (myClaim.status === 'pending') {
+              alertEl.className = 'p-3 rounded-lg text-xs bg-yellow-50 text-yellow-700';
+              alertEl.innerHTML = `<span class="material-symbols-outlined text-sm">hourglass_top</span> Your claim is pending approval.`;
+              alertEl.classList.remove('hidden');
+              document.getElementById('btn-claim-submit')?.setAttribute('disabled', 'disabled');
+              document.getElementById('btn-claim-submit').innerText = 'Pending approval';
+            } else if (myClaim.status === 'approved') {
+              alertEl.className = 'p-3 rounded-lg text-xs bg-green-50 text-green-700';
+              alertEl.innerHTML = `<span class="material-symbols-outlined text-sm">check_circle</span> Your claim was approved. Coordinate pickup via chat or call.`;
+              alertEl.classList.remove('hidden');
+              document.getElementById('btn-claim-submit')?.setAttribute('disabled', 'disabled');
+              document.getElementById('btn-claim-submit').innerText = 'Approved';
+            } else if (myClaim.status === 'resolved') {
+              alertEl.className = 'p-3 rounded-lg text-xs bg-gray-50 text-gray-700';
+              alertEl.innerHTML = `<span class="material-symbols-outlined text-sm">done_all</span> This claim has been resolved.`;
+              alertEl.classList.remove('hidden');
+              document.getElementById('btn-claim-submit')?.setAttribute('disabled', 'disabled');
+              document.getElementById('btn-claim-submit').innerText = 'Resolved';
+            }
+          }
+        } catch (e) { console.error(e); }
+      })();
 
       // Handle delete listing
       document.getElementById('btn-delete-listing')?.addEventListener('click', async () => {
