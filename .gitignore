@@ -8,6 +8,11 @@ __pycache__/
 
 # Agents
 .agents/
+.chat-sessions/
+
+# templates and static files
+templates/
+static/
 
 # Distribution / packaging
 .Python
