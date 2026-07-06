@@ -33,6 +33,6 @@ urlpatterns = [
     # Future endpoints for other apps
     # path('items/', include('apps.items.urls')),
     # path('claims/', include('apps.claims.urls')),
-    # path('chat/', include('apps.chat.urls')),
+    path('chat/', include('apps.chat.api_urls')),
     # path('notifications/', include('apps.notifications.urls')),
 ]

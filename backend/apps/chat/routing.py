@@ -4,7 +4,8 @@ Full implementation in Phase 4
 """
 
 from django.urls import path
+from . import consumers
 
 websocket_urlpatterns = [
-    # Placeholder - will add WebSocket consumers here in Phase 4
+    path('ws/chat/<uuid:chat_id>/', consumers.ChatConsumer.as_asgi()),
 ]
